@@ -3,6 +3,7 @@ package main
 import (
 	"onichan/controllers"
 	"onichan/database"
+	_ "onichan/docs"
 	"onichan/middleware"
 	"onichan/utils"
 	"onichan/websocket"
@@ -10,6 +11,8 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	swaggerfiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 func main() {
@@ -19,6 +22,7 @@ func main() {
 	controllers.LoadPageSize()
 
 	r := gin.Default()
+	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 
 	maxFileSize, _ := strconv.Atoi(os.Getenv("MAX_FILE_SIZE"))
 	r.MaxMultipartMemory = int64(maxFileSize)

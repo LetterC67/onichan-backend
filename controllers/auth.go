@@ -11,12 +11,45 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+type RegisterRequest struct {
+	Username string `json:"username" binding:"required"`
+	Email    string `json:"email" binding:"required"`
+	Password string `json:"password" binding:"required"`
+}
+
+type LoginRequest struct {
+	Username string `json:"username" binding:"required"`
+	Password string `json:"password" binding:"required"`
+}
+
+type ChangePasswordRequest struct {
+	OldPassword string `json:"old_password" binding:"required"`
+	NewPassword string `json:"new_password" binding:"required"`
+}
+
+type ChangeEmailRequest struct {
+	Email    string `json:"email" binding:"required"`
+	Password string `json:"password" binding:"required"`
+}
+
+type ChangeAvatarRequest struct {
+	AvatarURL string `json:"avatar_url" binding:"required"`
+}
+
+// Register godoc
+// @Summary      Register a new user
+// @Description  Creates a new user with the provided username, email, and password.
+// @Tags         auth
+// @Accept       json
+// @Produce      json
+// @Param        registerRequest  body      RegisterRequest  true  "Register user"
+// @Success      200  {object}    map[string]interface{}  "{"message": "User created successfully"}"
+// @Failure      400  {object}    map[string]interface{}  "{"error": "Password must contain at least 8 characters"}"
+// @Failure      409  {object}    map[string]interface{}  "{"error": "Email already in use"}"
+// @Failure      500  {object}    map[string]interface{}  "{"error": "Could not hash password"}"
+// @Router       /auth/register [post]
 func Register(c *gin.Context) {
-	var payload struct {
-		Username string `json:"username" binding:"required"`
-		Email    string `json:"email" binding:"required"`
-		Password string `json:"password" binding:"required"`
-	}
+	var payload RegisterRequest
 
 	if err := c.ShouldBindJSON(&payload); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -35,9 +68,7 @@ func Register(c *gin.Context) {
 	}
 
 	salt := utils.GetToken(32)
-
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(salt+payload.Password), bcrypt.DefaultCost)
-
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not hash password"})
 		return
@@ -65,19 +96,25 @@ func Register(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "User created successfully"})
 }
 
+// Login godoc
+// @Summary      Login a user
+// @Description  Authenticates a user with username and password and returns a JWT token.
+// @Tags         auth
+// @Accept       json
+// @Produce      json
+// @Param        loginRequest  body      LoginRequest  true  "Login user"
+// @Success      200  {object}  map[string]interface{}  "{"token": "your.jwt.token"}"
+// @Failure      400  {object}  map[string]interface{}  "{"error": "Invalid username or password"}"
+// @Failure      500  {object}  map[string]interface{}  "{"error": "Failed to generate token"}"
+// @Router       /auth/login [post]
 func Login(c *gin.Context) {
-	var payload struct {
-		Username string `json:"username" binding:"required"`
-		Password string `json:"password" binding:"required"`
-	}
-
+	var payload LoginRequest
 	if err := c.ShouldBindJSON(&payload); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
 	var user model.User
-
 	if err := database.Database.First(&user, "username = ?", payload.Username).Error; err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid username or password"})
 		return
@@ -97,12 +134,21 @@ func Login(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"token": token})
 }
 
+// ChangePassword godoc
+// @Summary      Change the current user's password
+// @Description  Allows a logged-in user to change their current password by providing the old password and a new password.
+// @Tags         auth
+// @Accept       json
+// @Produce      json
+// @Param        changePasswordRequest  body      ChangePasswordRequest  true  "Change Password"
+// @Success      200  {object}  map[string]interface{}  "{"message": "Password updated successfully"}"
+// @Failure      400  {object}  map[string]interface{}  "{"error": "Invalid old password"}"
+// @Failure      404  {object}  map[string]interface{}  "{"error": "User not found"}"
+// @Failure      500  {object}  map[string]interface{}  "{"error": "Could not hash password"}"
+// @Security     ApiKeyAuth
+// @Router       /auth/change-password [patch]
 func ChangePassword(c *gin.Context) {
-	var payload struct {
-		OldPassword string `json:"old_password" binding:"required"`
-		NewPassword string `json:"new_password" binding:"required"`
-	}
-
+	var payload ChangePasswordRequest
 	if err := c.ShouldBindJSON(&payload); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -122,9 +168,7 @@ func ChangePassword(c *gin.Context) {
 	}
 
 	salt := utils.GetToken(32)
-
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(salt+payload.NewPassword), bcrypt.DefaultCost)
-
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not hash password"})
 		return
@@ -141,12 +185,22 @@ func ChangePassword(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Password updated successfully"})
 }
 
+// ChangeEmail godoc
+// @Summary      Change the current user's email
+// @Description  Allows a logged-in user to change their email by providing current password and the new email.
+// @Tags         auth
+// @Accept       json
+// @Produce      json
+// @Param        changeEmailRequest  body      ChangeEmailRequest  true  "Change Email"
+// @Success      200  {object}  map[string]interface{}  "{"message": "Email updated successfully"}"
+// @Failure      400  {object}  map[string]interface{}  "{"error": "Invalid password"}"
+// @Failure      404  {object}  map[string]interface{}  "{"error": "User not found"}"
+// @Failure      409  {object}  map[string]interface{}  "{"error": "Email already in use"}"
+// @Failure      500  {object}  map[string]interface{}  "{"error": "Failed to update email"}"
+// @Security     ApiKeyAuth
+// @Router       /auth/change-email [patch]
 func ChangeEmail(c *gin.Context) {
-	var payload struct {
-		Email    string `json:"email" binding:"required"`
-		Password string `json:"password" binding:"required"`
-	}
-
+	var payload ChangeEmailRequest
 	if err := c.ShouldBindJSON(&payload); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -165,7 +219,9 @@ func ChangeEmail(c *gin.Context) {
 		return
 	}
 
-	if result := database.Database.First(&user, "email = ?", payload.Email); result.Error == nil {
+	// Check if new email is already in use
+	var existingUser model.User
+	if result := database.Database.First(&existingUser, "email = ?", payload.Email); result.Error == nil {
 		c.JSON(http.StatusConflict, gin.H{"error": "Email already in use"})
 		return
 	}
@@ -178,11 +234,21 @@ func ChangeEmail(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Email updated successfully"})
 }
 
+// ChangeAvatar godoc
+// @Summary      Change the current user's avatar
+// @Description  Allows a logged-in user to change their avatar URL.
+// @Tags         auth
+// @Accept       json
+// @Produce      json
+// @Param        changeAvatarRequest  body      ChangeAvatarRequest  true  "Change Avatar URL"
+// @Success      200  {object}  map[string]interface{}  "{"message": "Avatar updated successfully"}"
+// @Failure      400  {object}  map[string]interface{}  "{"error": "Bad request"}"
+// @Failure      404  {object}  map[string]interface{}  "{"error": "User not found"}"
+// @Failure      500  {object}  map[string]interface{}  "{"error": "Failed to update avatar"}"
+// @Security     ApiKeyAuth
+// @Router       /auth/change-avatar [patch]
 func ChangeAvatar(c *gin.Context) {
-	var payload struct {
-		AvatarURL string `json:"avatar_url" binding:"required"`
-	}
-
+	var payload ChangeAvatarRequest
 	if err := c.ShouldBindJSON(&payload); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return

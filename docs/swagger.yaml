@@ -1,0 +1,1471 @@
+definitions:
+  controllers.ChangeAvatarRequest:
+    properties:
+      avatar_url:
+        type: string
+    required:
+    - avatar_url
+    type: object
+  controllers.ChangeEmailRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  controllers.ChangePasswordRequest:
+    properties:
+      new_password:
+        type: string
+      old_password:
+        type: string
+    required:
+    - new_password
+    - old_password
+    type: object
+  controllers.CreateCategoryRequest:
+    properties:
+      description:
+        type: string
+      image_url:
+        type: string
+      name:
+        type: string
+    required:
+    - description
+    - name
+    type: object
+  controllers.CreateReactionRequest:
+    properties:
+      emoji:
+        type: string
+      name:
+        type: string
+    required:
+    - emoji
+    - name
+    type: object
+  controllers.CreateReportRequest:
+    properties:
+      post_id:
+        description: The ID of the post to report
+        type: integer
+    required:
+    - post_id
+    type: object
+  controllers.LoginRequest:
+    properties:
+      password:
+        type: string
+      username:
+        type: string
+    required:
+    - password
+    - username
+    type: object
+  controllers.Payload:
+    properties:
+      category_id:
+        description: CategoryID associates the post with a specific category
+        type: integer
+      content:
+        description: Content is the main text content of the post
+        type: string
+      is_master_post:
+        description: IsMasterPost indicates whether this post is the root post (master)
+          or a reply
+        type: boolean
+      parent_post_id:
+        description: ParentPostID links this reply to a parent post
+        type: integer
+      reply_to_id:
+        description: ReplyToID links this reply to a specific post if it's a direct
+          reply
+        type: integer
+      title:
+        description: Title is the title of the post (required for master post)
+        type: string
+    required:
+    - category_id
+    - content
+    type: object
+  controllers.RegisterRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+      username:
+        type: string
+    required:
+    - email
+    - password
+    - username
+    type: object
+  controllers.ResolveReportRequest:
+    properties:
+      delete_post:
+        description: If true, the post associated with the report will be marked as
+          deleted
+        type: boolean
+      report_id:
+        description: The ID of the report to resolve
+        type: integer
+    required:
+    - report_id
+    type: object
+  controllers.ToggleReactionRequest:
+    properties:
+      post_id:
+        type: integer
+      reaction_id:
+        type: integer
+    required:
+    - post_id
+    - reaction_id
+    type: object
+  controllers.UpdateCategoryRequest:
+    properties:
+      description:
+        type: string
+      image_url:
+        type: string
+      name:
+        type: string
+    required:
+    - description
+    - name
+    type: object
+  gorm.DeletedAt:
+    properties:
+      time:
+        type: string
+      valid:
+        description: Valid is true if Time is not NULL
+        type: boolean
+    type: object
+  model.Avatar:
+    properties:
+      avatar_url:
+        type: string
+      createdAt:
+        type: string
+      deletedAt:
+        $ref: '#/definitions/gorm.DeletedAt'
+      id:
+        type: integer
+      updatedAt:
+        type: string
+    type: object
+  model.Category:
+    properties:
+      createdAt:
+        type: string
+      deletedAt:
+        $ref: '#/definitions/gorm.DeletedAt'
+      description:
+        type: string
+      id:
+        type: integer
+      image_url:
+        type: string
+      name:
+        type: string
+      posts:
+        items:
+          $ref: '#/definitions/model.Post'
+        type: array
+      updatedAt:
+        type: string
+    type: object
+  model.Notification:
+    properties:
+      created_at:
+        type: string
+      createdAt:
+        type: string
+      deletedAt:
+        $ref: '#/definitions/gorm.DeletedAt'
+      from_user:
+        $ref: '#/definitions/model.User'
+      from_user_id:
+        type: integer
+      id:
+        type: integer
+      is_read:
+        type: boolean
+      notification_type:
+        type: string
+      post:
+        $ref: '#/definitions/model.Post'
+      post_id:
+        type: integer
+      updatedAt:
+        type: string
+      userID:
+        type: integer
+    type: object
+  model.Post:
+    properties:
+      category:
+        $ref: '#/definitions/model.Category'
+      category_id:
+        type: integer
+      content:
+        type: string
+      created_at:
+        type: string
+      createdAt:
+        type: string
+      deletedAt:
+        $ref: '#/definitions/gorm.DeletedAt'
+      id:
+        type: integer
+      is_deleted:
+        type: boolean
+      is_master_post:
+        type: boolean
+      last_updated:
+        type: string
+      page:
+        type: integer
+      parent_post_id:
+        type: integer
+      reactions:
+        items:
+          $ref: '#/definitions/model.PostReactionCount'
+        type: array
+      replies:
+        type: integer
+      reply_to:
+        $ref: '#/definitions/model.Post'
+      reply_to_id:
+        type: integer
+      title:
+        type: string
+      updatedAt:
+        type: string
+      user:
+        $ref: '#/definitions/model.User'
+      user_id:
+        type: integer
+      user_reactions:
+        items:
+          $ref: '#/definitions/model.PostReactionCount'
+        type: array
+    type: object
+  model.PostReactionCount:
+    properties:
+      count:
+        type: integer
+      reaction:
+        $ref: '#/definitions/model.Reaction'
+    type: object
+  model.Reaction:
+    properties:
+      createdAt:
+        type: string
+      deletedAt:
+        $ref: '#/definitions/gorm.DeletedAt'
+      emoji:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      updatedAt:
+        type: string
+    type: object
+  model.User:
+    properties:
+      avatar_url:
+        type: string
+      bio:
+        type: string
+      createdAt:
+        type: string
+      deletedAt:
+        $ref: '#/definitions/gorm.DeletedAt'
+      email:
+        type: string
+      id:
+        type: integer
+      role:
+        type: string
+      updatedAt:
+        type: string
+      username:
+        type: string
+    type: object
+info:
+  contact: {}
+paths:
+  /auth/change-avatar:
+    patch:
+      consumes:
+      - application/json
+      description: Allows a logged-in user to change their avatar URL.
+      parameters:
+      - description: Change Avatar URL
+        in: body
+        name: changeAvatarRequest
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.ChangeAvatarRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{"message": "Avatar updated successfully"}'
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: '{"error": "Bad request"}'
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: '{"error": "User not found"}'
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: '{"error": "Failed to update avatar"}'
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Change the current user's avatar
+      tags:
+      - auth
+  /auth/change-email:
+    patch:
+      consumes:
+      - application/json
+      description: Allows a logged-in user to change their email by providing current
+        password and the new email.
+      parameters:
+      - description: Change Email
+        in: body
+        name: changeEmailRequest
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.ChangeEmailRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{"message": "Email updated successfully"}'
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: '{"error": "Invalid password"}'
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: '{"error": "User not found"}'
+          schema:
+            additionalProperties: true
+            type: object
+        "409":
+          description: '{"error": "Email already in use"}'
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: '{"error": "Failed to update email"}'
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Change the current user's email
+      tags:
+      - auth
+  /auth/change-password:
+    patch:
+      consumes:
+      - application/json
+      description: Allows a logged-in user to change their current password by providing
+        the old password and a new password.
+      parameters:
+      - description: Change Password
+        in: body
+        name: changePasswordRequest
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.ChangePasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{"message": "Password updated successfully"}'
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: '{"error": "Invalid old password"}'
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: '{"error": "User not found"}'
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: '{"error": "Could not hash password"}'
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Change the current user's password
+      tags:
+      - auth
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticates a user with username and password and returns a JWT
+        token.
+      parameters:
+      - description: Login user
+        in: body
+        name: loginRequest
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{"token": "your.jwt.token"}'
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: '{"error": "Invalid username or password"}'
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: '{"error": "Failed to generate token"}'
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Login a user
+      tags:
+      - auth
+  /auth/register:
+    post:
+      consumes:
+      - application/json
+      description: Creates a new user with the provided username, email, and password.
+      parameters:
+      - description: Register user
+        in: body
+        name: registerRequest
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{"message": "User created successfully"}'
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: '{"error": "Password must contain at least 8 characters"}'
+          schema:
+            additionalProperties: true
+            type: object
+        "409":
+          description: '{"error": "Email already in use"}'
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: '{"error": "Could not hash password"}'
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Register a new user
+      tags:
+      - auth
+  /categories:
+    get:
+      description: Returns an array of all categories
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/model.Category'
+            type: array
+        "500":
+          description: '{"error":"Failed to retrieve categories"}'
+          schema:
+            additionalProperties: true
+            type: object
+      summary: List all categories
+      tags:
+      - categories
+    post:
+      consumes:
+      - application/json
+      description: Creates a new category with the provided name, description, and
+        optional image URL
+      parameters:
+      - description: Category creation payload
+        in: body
+        name: category
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.CreateCategoryRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Category created successfully
+          schema:
+            type: string
+        "400":
+          description: '{"error":"Bad request"}'
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: '{"error":"Internal Server Error"}'
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Create a new category
+      tags:
+      - categories
+  /categories/{id}:
+    delete:
+      description: Removes a category from the database by ID
+      parameters:
+      - description: Category ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "500":
+          description: '{"error":"Failed to delete category"}'
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Delete a category by ID
+      tags:
+      - categories
+    get:
+      description: If `id` is an integer, it searches by ID. Otherwise, it searches
+        by name.
+      parameters:
+      - description: Category ID or name
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Category'
+        "404":
+          description: '{"error":"Category not found"}'
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get a specific category by ID or name
+      tags:
+      - categories
+    patch:
+      consumes:
+      - application/json
+      description: Updates only the provided fields in the request body
+      parameters:
+      - description: Category ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Partial category update payload
+        in: body
+        name: data
+        required: true
+        schema:
+          additionalProperties: true
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Category'
+        "400":
+          description: '{"error":"Bad request"}'
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: '{"error":"Category not found"}'
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: '{"error":"Failed to update category"}'
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Partially update a category
+      tags:
+      - categories
+    put:
+      consumes:
+      - application/json
+      description: Updates all fields of a category by ID
+      parameters:
+      - description: Category ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Category update payload
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.UpdateCategoryRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Category'
+        "400":
+          description: '{"error":"Bad request"}'
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: '{"error":"Category not found"}'
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: '{"error":"Failed to update category"}'
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Update an existing category (full update)
+      tags:
+      - categories
+  /notifications:
+    get:
+      description: Retrieves all unread notifications for the logged-in user, including
+        preloaded Post, FromUser, and Category information. Automatically calculates
+        and sets the `Page` field for pagination based on the post's creation date.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/model.Notification'
+            type: array
+        "404":
+          description: '{"error": "Notification not found"}'
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: '{"error": "Failed to get post order"}'
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Get unread notifications for the current user
+      tags:
+      - notifications
+    patch:
+      description: Marks all unread notifications for the logged-in user as read in
+        the database
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{"message": "Notifications marked as read"}'
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: '{"error": "Failed to mark notifications as read"}'
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Mark all unread notifications as read
+      tags:
+      - notifications
+  /posts:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves a paginated list of master posts from a category, identified
+        by either category ID or category name.
+      parameters:
+      - description: Category ID
+        in: query
+        name: category_id
+        type: string
+      - description: Category Name
+        in: query
+        name: category_name
+        type: string
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of posts and total_pages
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: List posts
+      tags:
+      - posts
+    post:
+      consumes:
+      - application/json
+      description: Creates a master post or a reply. Master posts require a title
+        and cannot have a parent, while replies must have a parent and must not have
+        a title.
+      parameters:
+      - description: Post payload
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.Payload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: page, id
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Create a new post
+      tags:
+      - posts
+  /posts/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves a specific post by its ID. Also returns any replies,
+        category and user details, reaction data, etc. Pagination is applied to replies.
+      parameters:
+      - description: Post ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - default: 1
+        description: Page number for replies
+        in: query
+        name: page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: posts, master_post, total_pages
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Post not found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get a post and its replies
+      tags:
+      - posts
+    patch:
+      consumes:
+      - application/json
+      description: Updates only the fields provided in the request body. Must pass
+        post ID via the path. Respects user ownership or admin rights.
+      parameters:
+      - description: Post ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Fields to update
+        in: body
+        name: payload
+        required: true
+        schema:
+          additionalProperties: true
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Post'
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden - user not authorized to update
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Post not found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Partially update an existing post
+      tags:
+      - posts
+    put:
+      consumes:
+      - application/json
+      description: Fully update an existing post by its ID. Respects master/reply
+        post validation rules.
+      parameters:
+      - description: Post ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Post payload
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.Payload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Post'
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden - user not authorized to update
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Post or category not found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Update an existing post
+      tags:
+      - posts
+  /posts/reactions:
+    put:
+      consumes:
+      - application/json
+      description: Adds or removes a user's reaction on a post, depending on whether
+        the user has already reacted.
+      parameters:
+      - description: Toggle Reaction Request
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.ToggleReactionRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{"message": "Reaction added"} or {"message": "Reaction removed"}'
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: '{"error": "Bad request"}'
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: '{"error": "Unauthorized"}'
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: '{"error": "Failed to add reaction" or "Failed to remove reaction"}'
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Toggle a reaction on a post
+      tags:
+      - posts
+  /reactions:
+    get:
+      description: Retrieves a list of all reaction objects in the database
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/model.Reaction'
+            type: array
+        "500":
+          description: Failed to retrieve categories
+          schema:
+            additionalProperties: true
+            type: object
+      summary: List all reactions
+      tags:
+      - reactions
+    post:
+      consumes:
+      - application/json
+      description: Creates a new reaction with the specified name and emoji
+      parameters:
+      - description: Create Reaction Request
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.CreateReactionRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Reaction created successfully
+          schema:
+            type: string
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Failed to create reaction
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Create a new reaction
+      tags:
+      - reactions
+  /reactions/{id}:
+    delete:
+      description: Removes a reaction from the database by its ID
+      parameters:
+      - description: Reaction ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "500":
+          description: Failed to delete reaction
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Delete a reaction by ID
+      tags:
+      - reactions
+    get:
+      description: Retrieves a single reaction by its ID
+      parameters:
+      - description: Reaction ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Reaction'
+        "404":
+          description: Reaction not found
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get a reaction by ID
+      tags:
+      - reactions
+    patch:
+      consumes:
+      - application/json
+      description: Updates only the fields provided in the request body
+      parameters:
+      - description: Reaction ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Partial reaction update payload
+        in: body
+        name: data
+        required: true
+        schema:
+          additionalProperties: true
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Reaction'
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Reaction not found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Failed to update reaction
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Partially update an existing reaction
+      tags:
+      - reactions
+    put:
+      consumes:
+      - application/json
+      description: Updates all fields of a reaction by its ID
+      parameters:
+      - description: Reaction ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Reaction update payload
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/model.Reaction'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Reaction'
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Reaction not found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Failed to update reaction
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Update an existing reaction (full update)
+      tags:
+      - reactions
+  /reports:
+    get:
+      description: Returns a paginated list of reports, including the reported Post
+        and the reporting User
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{"reports": [...], "total_pages": X}'
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: '{"error": "Failed to retrieve reports"}'
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: List all reports
+      tags:
+      - reports
+    patch:
+      consumes:
+      - application/json
+      description: Resolves a report by marking it as resolved. Optionally deletes
+        the associated post if specified.
+      parameters:
+      - description: Resolve Report Request
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.ResolveReportRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{"message": "Report resolved successfully"}'
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: '{"error": "Bad request"}'
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: '{"error": "Report or post not found"}'
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: '{"error": "Failed to resolve report"}'
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Resolve a report
+      tags:
+      - reports
+    post:
+      consumes:
+      - application/json
+      description: Creates a report for a specific post by ID
+      parameters:
+      - description: Report creation payload
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.CreateReportRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{"message": "Report created successfully"}'
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: '{"error": "Bad request"}'
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: '{"error": "Post not found"}'
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: '{"error": "Failed to create report"}'
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Create a new report for a post
+      tags:
+      - reports
+  /search/posts:
+    get:
+      consumes:
+      - application/json
+      description: Searches for replies (posts) by content for a given parent post
+        ID. Must provide the parent post's ID via query parameter `id`.
+      parameters:
+      - description: Content or partial content to search for
+        in: query
+        name: content
+        required: true
+        type: string
+      - description: Parent post ID
+        in: query
+        name: id
+        required: true
+        type: integer
+      - default: 1
+        description: Page number for pagination
+        in: query
+        name: page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{"posts": [...], "total_pages": X}'
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: '{"error": "Missing query parameters"}'
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: '{"error": "Parent post not found" or "Post not found"}'
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: '{"error": "Failed to get post count"}'
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Search replies to a specific post
+      tags:
+      - search
+  /search/title:
+    get:
+      consumes:
+      - application/json
+      description: Searches for master posts by title within a specified category.
+        Must include `category` and `title` query parameters.
+      parameters:
+      - description: Title or partial title to search for
+        in: query
+        name: title
+        required: true
+        type: string
+      - description: Name of the category
+        in: query
+        name: category
+        required: true
+        type: string
+      - default: 1
+        description: Page number for pagination
+        in: query
+        name: page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{"posts": [...], "total_pages": X}'
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: '{"error": "Missing required query parameters"}'
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: '{"error": "Category not found" or "Post not found"}'
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: '{"error": "Failed to get post count"}'
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Search posts by title
+      tags:
+      - search
+  /upload:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Accepts a single image file (jpg, jpeg, png, gif, webp, svg, bmp)
+        via multipart/form-data.
+      parameters:
+      - description: File to upload
+        in: formData
+        name: file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{"message": "File uploaded successfully", "path": "uploads/<filename>"}'
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: '{"error": "No file uploaded or invalid file format"}'
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: '{"error": "Failed to save file"}'
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Upload an image
+      tags:
+      - upload
+  /users/{id}:
+    get:
+      description: Retrieves a single user by their ID
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.User'
+        "404":
+          description: '{"error":"User not found"}'
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get user by ID
+      tags:
+      - users
+  /users/avatars:
+    get:
+      description: Retrieves an array of all avatars in the system
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/model.Avatar'
+            type: array
+        "500":
+          description: '{"error":"Failed to retrieve avatars"}'
+          schema:
+            additionalProperties: true
+            type: object
+      summary: List all available avatars
+      tags:
+      - users
+swagger: "2.0"

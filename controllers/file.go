@@ -10,6 +10,17 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// UploadImage godoc
+// @Summary      Upload an image
+// @Description  Accepts a single image file (jpg, jpeg, png, gif, webp, svg, bmp) via multipart/form-data.
+// @Tags         upload
+// @Accept       multipart/form-data
+// @Produce      json
+// @Param        file  formData  file  true  "File to upload"
+// @Success      200   {object}  map[string]interface{}  "{"message": "File uploaded successfully", "path": "uploads/<filename>"}"
+// @Failure      400   {object}  map[string]interface{}  "{"error": "No file uploaded or invalid file format"}"
+// @Failure      500   {object}  map[string]interface{}  "{"error": "Failed to save file"}"
+// @Router       /upload [post]
 func UploadImage(c *gin.Context) {
 	file, err := c.FormFile("file")
 	if err != nil {

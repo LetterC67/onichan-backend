@@ -100,6 +100,18 @@ func validatePost(payload interface{}) (bool, string) {
 	return true, ""
 }
 
+// CreatePost godoc
+// @Summary      Create a new post
+// @Description  Creates a master post or a reply. Master posts require a title and cannot have a parent, while replies must have a parent and must not have a title.
+// @Tags         posts
+// @Accept       json
+// @Produce      json
+// @Param        payload  body      Payload  true  "Post payload"
+// @Success      200      {object}  map[string]interface{}  "page, id"
+// @Failure      400      {object}  map[string]interface{}  "Bad Request"
+// @Failure      500      {object}  map[string]interface{}  "Internal Server Error"
+// @Security     ApiKeyAuth
+// @Router       /posts [post]
 func CreatePost(c *gin.Context) {
 	var payload Payload
 	var parentPost model.Post
@@ -137,17 +149,13 @@ func CreatePost(c *gin.Context) {
 	}
 
 	if payload.ReplyToID != nil {
-
 		if err := database.Database.First(&replyToPost, payload.ReplyToID).Error; err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Reply to post not found"})
 			return
 		}
-
 	}
 
 	if payload.ParentPostID != nil {
-		var replyToPost model.Post
-
 		if err := database.Database.First(&parentPost, payload.ParentPostID).Error; err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Parent post not found"})
 			return
@@ -178,7 +186,6 @@ func CreatePost(c *gin.Context) {
 
 	if payload.ReplyToID != nil && replyToPost.UserID != userIDUint {
 		err := services.CreateNotification(replyToPost.UserID, userIDUint, post.ID, "reply")
-
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -187,12 +194,10 @@ func CreatePost(c *gin.Context) {
 
 	if payload.ParentPostID != nil && parentPost.UserID != userIDUint {
 		err := services.CreateNotification(parentPost.UserID, userIDUint, post.ID, "comment")
-
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
-
 	}
 
 	var count int64
@@ -209,9 +214,23 @@ func CreatePost(c *gin.Context) {
 	})
 }
 
+// ListPosts godoc
+// @Summary      List posts
+// @Description  Retrieves a paginated list of master posts from a category, identified by either category ID or category name.
+// @Tags         posts
+// @Accept       json
+// @Produce      json
+// @Param        category_id    query     string  false  "Category ID"
+// @Param        category_name  query     string  false  "Category Name"
+// @Param        page           query     int     false  "Page number"  default(1)
+// @Success      200  {object}  map[string]interface{}  "List of posts and total_pages"
+// @Failure      400  {object}  map[string]interface{}  "Bad Request"
+// @Failure      404  {object}  map[string]interface{}  "Not Found"
+// @Failure      500  {object}  map[string]interface{}  "Internal Server Error"
+// @Router       /posts [get]
 func ListPosts(c *gin.Context) {
 	var posts []model.Post
-	var total_posts int64
+	var totalPosts int64
 	categoryID := c.Query("category_id")
 	categoryName := c.Query("category_name")
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
@@ -232,25 +251,36 @@ func ListPosts(c *gin.Context) {
 
 	offset := (page - 1) * pageSize
 
-	if err := database.Database.Preload("User").Order("last_updated DESC").Where("category_id = ? AND is_master_post = ?", categoryID, true).Offset(offset).Limit(pageSize).Find(&posts).Error; err != nil {
+	if err := database.Database.
+		Preload("User").
+		Order("last_updated DESC").
+		Where("category_id = ? AND is_master_post = ?", categoryID, true).
+		Offset(offset).
+		Limit(pageSize).
+		Find(&posts).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	if err := database.Database.Model(&model.Post{}).Where("category_id = ? AND is_master_post = ?", categoryID, true).Count(&total_posts).Error; err != nil {
+	if err := database.Database.
+		Model(&model.Post{}).
+		Where("category_id = ? AND is_master_post = ?", categoryID, true).
+		Count(&totalPosts).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
 	for i := range posts {
 		var replyCount int64
-		database.Database.Model(&model.Post{}).Where("parent_post_id = ?", posts[i].ID).Count(&replyCount)
+		database.Database.Model(&model.Post{}).
+			Where("parent_post_id = ?", posts[i].ID).
+			Count(&replyCount)
 		posts[i].RepliesCount = int(replyCount)
 	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"posts":       posts,
-		"total_pages": (int(total_posts) + pageSize - 1) / pageSize,
+		"total_pages": (int(totalPosts) + pageSize - 1) / pageSize,
 	})
 }
 
@@ -269,10 +299,14 @@ func getPostReactions(postID uint, c *gin.Context) ([]model.PostReactionCount, [
 		var reactionCount, userReactionCount int64
 
 		if userID != "" {
-			database.Database.Model(&model.PostReaction{}).Where("post_id = ? AND user_id = ? AND reaction_id = ?", postID, userID, reaction.ID).Count(&userReactionCount)
+			database.Database.Model(&model.PostReaction{}).
+				Where("post_id = ? AND user_id = ? AND reaction_id = ?", postID, userID, reaction.ID).
+				Count(&userReactionCount)
 		}
 
-		database.Database.Model(&model.PostReaction{}).Where("post_id = ? AND reaction_id = ?", postID, reaction.ID).Count(&reactionCount)
+		database.Database.Model(&model.PostReaction{}).
+			Where("post_id = ? AND reaction_id = ?", postID, reaction.ID).
+			Count(&reactionCount)
 
 		reactionsCount = append(reactionsCount, model.PostReactionCount{
 			Reaction: reaction,
@@ -285,25 +319,46 @@ func getPostReactions(postID uint, c *gin.Context) ([]model.PostReactionCount, [
 				Count:    int(userReactionCount),
 			})
 		}
-
 	}
 
 	return reactionsCount, userReactionsCount, nil
 }
 
+// GetPost godoc
+// @Summary      Get a post and its replies
+// @Description  Retrieves a specific post by its ID. Also returns any replies, category and user details, reaction data, etc. Pagination is applied to replies.
+// @Tags         posts
+// @Accept       json
+// @Produce      json
+// @Param        id    path   string  true  "Post ID"
+// @Param        page  query  int     false "Page number for replies" default(1)
+// @Success      200   {object} map[string]interface{}  "posts, master_post, total_pages"
+// @Failure      404   {object} map[string]interface{}  "Post not found"
+// @Failure      500   {object} map[string]interface{}  "Internal server error"
+// @Router       /posts/{id} [get]
 func GetPost(c *gin.Context) {
 	var post model.Post
 	var posts []model.Post
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
 
-	if err := database.Database.Preload("ReplyTo").Preload("ReplyTo.User").Preload("Category").Preload("User").First(&post, c.Param("id")).Error; err != nil {
+	if err := database.Database.
+		Preload("ReplyTo").
+		Preload("ReplyTo.User").
+		Preload("Category").
+		Preload("User").
+		First(&post, c.Param("id")).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Post not found"})
 		return
 	}
 
 	offset := (page - 1) * pageSize
 
-	if err := database.Database.Preload("ReplyTo").Preload("ReplyTo.User").Preload("Category").Preload("User").Where("parent_post_id = ? OR id = ?", post.ID, post.ID).
+	if err := database.Database.
+		Preload("ReplyTo").
+		Preload("ReplyTo.User").
+		Preload("Category").
+		Preload("User").
+		Where("parent_post_id = ? OR id = ?", post.ID, post.ID).
 		Order("created_at ASC").
 		Offset(offset).
 		Limit(pageSize).
@@ -312,6 +367,7 @@ func GetPost(c *gin.Context) {
 		return
 	}
 
+	// Load reactions for each post
 	for i := range posts {
 		if reactions, userReactions, err := getPostReactions(posts[i].ID, c); err == nil {
 			posts[i].Reactions = reactions
@@ -320,15 +376,32 @@ func GetPost(c *gin.Context) {
 	}
 
 	var replyCount int64
-	database.Database.Model(&model.Post{}).Where("parent_post_id = ?", post.ID).Count(&replyCount)
+	database.Database.Model(&model.Post{}).
+		Where("parent_post_id = ?", post.ID).
+		Count(&replyCount)
 
 	c.JSON(http.StatusOK, gin.H{
 		"posts":       posts,
 		"master_post": post,
-		"total_pages": int(int(replyCount)+pageSize) / pageSize,
+		"total_pages": (int(replyCount) + pageSize) / pageSize,
 	})
 }
 
+// UpdatePost godoc
+// @Summary      Update an existing post
+// @Description  Fully update an existing post by its ID. Respects master/reply post validation rules.
+// @Tags         posts
+// @Accept       json
+// @Produce      json
+// @Param        id      path   int      true  "Post ID"
+// @Param        payload body   Payload  true  "Post payload"
+// @Success      200     {object} model.Post
+// @Failure      400     {object} map[string]interface{}  "Bad request"
+// @Failure      403     {object} map[string]interface{}  "Forbidden - user not authorized to update"
+// @Failure      404     {object} map[string]interface{}  "Post or category not found"
+// @Failure      500     {object} map[string]interface{}  "Internal server error"
+// @Security     ApiKeyAuth
+// @Router       /posts/{id} [put]
 func UpdatePost(c *gin.Context) {
 	var post model.Post
 	var payload Payload
@@ -342,18 +415,18 @@ func UpdatePost(c *gin.Context) {
 	userIDUint := uint(userID.(float64))
 	role := c.GetString("role")
 
-	if post.UserID != uint(userID.(float64)) && role != "admin" {
+	if post.UserID != userIDUint && role != "admin" {
 		c.JSON(http.StatusForbidden, gin.H{"error": "You are not allowed to update this post"})
-		return
-	}
-
-	if err := database.Database.First(&model.Category{}, payload.CategoryID).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Category not found"})
 		return
 	}
 
 	if err := c.ShouldBindJSON(&payload); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if err := database.Database.First(&model.Category{}, payload.CategoryID).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Category not found"})
 		return
 	}
 
@@ -392,6 +465,21 @@ func UpdatePost(c *gin.Context) {
 	c.JSON(http.StatusOK, post)
 }
 
+// PatchPost godoc
+// @Summary      Partially update an existing post
+// @Description  Updates only the fields provided in the request body. Must pass post ID via the path. Respects user ownership or admin rights.
+// @Tags         posts
+// @Accept       json
+// @Produce      json
+// @Param        id      path   int                       true  "Post ID"
+// @Param        payload body   map[string]interface{}    true  "Fields to update"
+// @Success      200     {object} model.Post
+// @Failure      400     {object} map[string]interface{}  "Bad request"
+// @Failure      403     {object} map[string]interface{}  "Forbidden - user not authorized to update"
+// @Failure      404     {object} map[string]interface{}  "Post not found"
+// @Failure      500     {object} map[string]interface{}  "Internal server error"
+// @Security     ApiKeyAuth
+// @Router       /posts/{id} [patch]
 func PatchPost(c *gin.Context) {
 	var post model.Post
 	var payload map[string]interface{}
@@ -438,9 +526,8 @@ func PatchPost(c *gin.Context) {
 		post.CategoryID = categoryID
 	}
 
-	ok, message := validatePost(post)
-
-	if !ok {
+	// Validate the updated post
+	if ok, message := validatePost(post); !ok {
 		c.JSON(http.StatusBadRequest, gin.H{"error": message})
 		return
 	}

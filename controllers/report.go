@@ -9,6 +9,23 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+type CreateReportRequest struct {
+	PostID uint `json:"post_id" binding:"required"`
+}
+
+// CreateReport godoc
+// @Summary      Create a new report for a post
+// @Description  Creates a report for a specific post by ID
+// @Tags         reports
+// @Accept       json
+// @Produce      json
+// @Param        payload body      CreateReportRequest true "Report creation payload"
+// @Success      200     {object}  map[string]interface{}  "{"message": "Report created successfully"}"
+// @Failure      400     {object}  map[string]interface{}  "{"error": "Bad request"}"
+// @Failure      404     {object}  map[string]interface{}  "{"error": "Post not found"}"
+// @Failure      500     {object}  map[string]interface{}  "{"error": "Failed to create report"}"
+// @Security     ApiKeyAuth
+// @Router       /reports [post]
 func CreateReport(c *gin.Context) {
 	var payload struct {
 		PostID uint `json:"post_id" binding:"required"`
@@ -20,13 +37,13 @@ func CreateReport(c *gin.Context) {
 		return
 	}
 
-	var Post model.Post
-	if err := database.Database.First(&Post, payload.PostID).Error; err != nil {
+	var post model.Post
+	if err := database.Database.First(&post, payload.PostID).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Post not found"})
 		return
 	}
 
-	if Post.IsDeleted {
+	if post.IsDeleted {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Post has been removed already"})
 		return
 	}
@@ -46,13 +63,30 @@ func CreateReport(c *gin.Context) {
 	})
 }
 
+// ListReports godoc
+// @Summary      List all reports
+// @Description  Returns a paginated list of reports, including the reported Post and the reporting User
+// @Tags         reports
+// @Produce      json
+// @Param        page  query     int  false  "Page number" default(1)
+// @Success      200   {object}  map[string]interface{}  "{"reports": [...], "total_pages": X}"
+// @Failure      500   {object}  map[string]interface{}  "{"error": "Failed to retrieve reports"}"
+// @Security     ApiKeyAuth
+// @Router       /reports [get]
 func ListReports(c *gin.Context) {
 	var reports []model.Report
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
 
 	offset := (page - 1) * pageSize
 
-	if err := database.Database.Order("created_at DESC").Offset(offset).Limit(pageSize).Preload("User").Preload("Post").Preload("Post.User").Find(&reports).Error; err != nil {
+	if err := database.Database.
+		Order("created_at DESC").
+		Offset(offset).
+		Limit(pageSize).
+		Preload("User").
+		Preload("Post").
+		Preload("Post.User").
+		Find(&reports).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve reports"})
 		return
 	}
@@ -69,6 +103,24 @@ func ListReports(c *gin.Context) {
 	})
 }
 
+type ResolveReportRequest struct {
+	ReportID   uint `json:"report_id" binding:"required"`
+	DeletePost bool `json:"delete_post"`
+}
+
+// ResolveReport godoc
+// @Summary      Resolve a report
+// @Description  Resolves a report by marking it as resolved. Optionally deletes the associated post if specified.
+// @Tags         reports
+// @Accept       json
+// @Produce      json
+// @Param        payload  body      ResolveReportRequest  true  "Resolve Report Request"
+// @Success      200      {object}  map[string]interface{}  "{"message": "Report resolved successfully"}"
+// @Failure      400      {object}  map[string]interface{}  "{"error": "Bad request"}"
+// @Failure      404      {object}  map[string]interface{}  "{"error": "Report or post not found"}"
+// @Failure      500      {object}  map[string]interface{}  "{"error": "Failed to resolve report"}"
+// @Security     ApiKeyAuth
+// @Router       /reports [patch]
 func ResolveReport(c *gin.Context) {
 	var payload struct {
 		ReportID   uint `json:"report_id" binding:"required"`

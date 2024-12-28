@@ -6,7 +6,7 @@ RUN go mod download
 COPY . .
 RUN go build -o migrate ./migrate/
 RUN go build -o script ./scripts/
-RUN go build -o main ./cmd/
+RUN go build -o main
 
 
 FROM golang:1.23 AS runtime
