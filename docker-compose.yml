@@ -20,6 +20,8 @@ services:
         build:
             context: .
             dockerfile: Dockerfile
+        ports:
+            - "${APP_PORT}:${APP_PORT}"
         container_name: onichan-backend
         depends_on:
             - db
