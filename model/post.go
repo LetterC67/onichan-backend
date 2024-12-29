@@ -22,9 +22,9 @@ type Reaction struct {
 
 type PostReaction struct {
 	gorm.Model
-	PostID     uint     `gorm:"index:post_user_reaction_index_unique;unique;constraint:OnDelete:CASCADE" json:"post_id"`
-	UserID     uint     `gorm:"index:post_user_reaction_index_unique;unique" json:"user_id"`
-	ReactionID uint     `gorm:"index:post_user_reaction_index_unique;unique" json:"reaction_id"`
+	PostID     uint     `gorm:"index:post_user_reaction_index,unique;constraint:OnDelete:CASCADE" json:"post_id"`
+	UserID     uint     `gorm:"index:post_user_reaction_index,unique" json:"user_id"`
+	ReactionID uint     `gorm:"index:post_user_reaction_index,unique" json:"reaction_id"`
 	Reaction   Reaction `gorm:"foreignKey:ReactionID" json:"reaction"`
 }
 
