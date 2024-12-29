@@ -47,7 +47,7 @@ func ToggleReaction(c *gin.Context) {
 		First(&reaction).Error
 
 	if err == nil {
-		if err := database.Database.Delete(&reaction).Error; err != nil {
+		if err := database.Database.Unscoped().Delete(&reaction).Error; err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to remove reaction"})
 			return
 		}
