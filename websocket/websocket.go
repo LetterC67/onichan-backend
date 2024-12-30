@@ -2,7 +2,6 @@ package websocket
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 	"onichan/model"
@@ -124,7 +123,9 @@ func SendNewPostSignal(postID uint) {
 		return
 	} else {
 		for userID := range clients {
-			fmt.Println("user subscribed ", userID)
+			if Users[userID].Conn == nil {
+				continue
+			}
 			if err := Users[userID].Conn.WriteJSON(gin.H{
 				"type":    "post",
 				"post_id": postID,
