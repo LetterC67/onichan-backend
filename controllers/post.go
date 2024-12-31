@@ -181,7 +181,7 @@ func CreatePost(c *gin.Context) {
 	}
 
 	if payload.ParentPostID != nil {
-		websocket.SendNewPostSignal(*post.ParentPostID)
+		websocket.SendNewPostSignal(*post.ParentPostID, userIDUint)
 	}
 
 	if payload.ReplyToID != nil && replyToPost.UserID != userIDUint {

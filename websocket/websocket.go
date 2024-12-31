@@ -2,6 +2,7 @@ package websocket
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"onichan/model"
@@ -114,7 +115,7 @@ func SendWebSocketNotification(userID uint, message model.Notification) {
 	}
 }
 
-func SendNewPostSignal(postID uint) {
+func SendNewPostSignal(postID uint, userIDUint uint) {
 	mu.Lock()
 	clients, ok := Posts[postID]
 	mu.Unlock()
@@ -123,9 +124,10 @@ func SendNewPostSignal(postID uint) {
 		return
 	} else {
 		for userID := range clients {
-			if Users[userID].Conn == nil {
+			if userID == userIDUint || Users[userID].Conn == nil {
 				continue
 			}
+			fmt.Println("Sending post signal to user", userID)
 			if err := Users[userID].Conn.WriteJSON(gin.H{
 				"type":    "post",
 				"post_id": postID,
