@@ -31,8 +31,8 @@ func main() {
 
 	api := r.Group("api")
 
-	api.POST("/api/upload", middleware.JWTMiddleware(database.Database), controllers.UploadImage)
-	api.Static("/api/uploads", os.Getenv("UPLOAD_PATH"))
+	api.POST("/upload", middleware.JWTMiddleware(database.Database), controllers.UploadImage)
+	api.Static("/uploads", os.Getenv("UPLOAD_PATH"))
 
 	authRoute := api.Group("/auth")
 	{
