@@ -41,6 +41,20 @@ func GenerateJWT(userID uint) (string, error) {
 	return token.SignedString(jwtSecret)
 }
 
+func GenerateJWTForgotPassword(userID uint, passwordHash string) (string, error) {
+	exp, _ := strconv.Atoi(os.Getenv("EMAIL_EXPIRATION"))
+
+	claims := jwt.MapClaims{
+		"user_id": userID,
+		"exp":     time.Now().Add(time.Duration(exp) * time.Second).Unix(),
+		"hash":    passwordHash,
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+
+	return token.SignedString(jwtSecret)
+}
+
 func ValidateJWT(tokenString string) (*jwt.Token, error) {
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
@@ -78,4 +92,13 @@ func GetToken(length int) string {
 		panic(err)
 	}
 	return base32.StdEncoding.EncodeToString(randomBytes)[:length]
+}
+
+func GetRandomAlphaString(length int) string {
+	const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	b := make([]byte, length)
+	for i := range b {
+		b[i] = charset[rand.Intn(len(charset))]
+	}
+	return string(b)
 }

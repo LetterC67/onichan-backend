@@ -5,6 +5,7 @@ import (
 	"onichan/database"
 	_ "onichan/docs"
 	"onichan/middleware"
+	"onichan/services"
 	"onichan/utils"
 	"onichan/websocket"
 	"os"
@@ -18,6 +19,7 @@ import (
 func main() {
 	utils.LoadEnv()
 	utils.LoadJWT()
+	services.LoadEnv()
 	database.Connect()
 	controllers.LoadPageSize()
 
@@ -41,6 +43,8 @@ func main() {
 		authRoute.PATCH("/change-password", middleware.JWTMiddleware(database.Database), controllers.ChangePassword)
 		authRoute.PATCH("/change-email", middleware.JWTMiddleware(database.Database), controllers.ChangeEmail)
 		authRoute.PATCH("/change-avatar", middleware.JWTMiddleware(database.Database), controllers.ChangeAvatar)
+		authRoute.POST("/forgot-password", controllers.ForgotPassword)
+		authRoute.POST("/reset-password", controllers.ResetForgottenPassword)
 	}
 
 	userRoute := api.Group("/users")
