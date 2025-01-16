@@ -26,6 +26,8 @@ services:
         depends_on:
             - db
         network_mode: "host"
+        volumes:
+            - uploads:/app/uploads
 
 
 volumes:
